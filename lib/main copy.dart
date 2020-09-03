@@ -149,8 +149,6 @@ class CSDigitState extends State<CSDigit> with SingleTickerProviderStateMixin {
   AnimationStatus animationStatus = AnimationStatus.dismissed;
 
   Widget frontUp, frontDown, backUp, backDown;
-  double _currentDegree = 0;
-  bool _goingDown = false;
 
 
 
@@ -268,7 +266,7 @@ class CSDigitState extends State<CSDigit> with SingleTickerProviderStateMixin {
   void upperTap() {
 
     if (!widget.isAbove) return; // En üstteki değilsen birşey yapma...
-    _goingDown = false;
+
     print ('upper tap');
     setState(() {
      // startAnimation = true;
@@ -281,15 +279,6 @@ class CSDigitState extends State<CSDigit> with SingleTickerProviderStateMixin {
           }    
   }
 
-  void belowTap() {
-    print ('bellow Tapped');
-    _goingDown = true;
-    _currentDegree = math.pi /2;
-    if (stage > 1) { stage = 1; }
-            animationController.reverse();
-  }
-
-
   @override
   Widget build(BuildContext context) {
     return Stack (
@@ -299,20 +288,22 @@ class CSDigitState extends State<CSDigit> with SingleTickerProviderStateMixin {
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            GestureDetector(
-                              child: frontUp,
-                              onTap: () {
-                                upperTap();
-                              }) ,
+                            (stage == 2) ?
+                                  Transform(
+                                    alignment: Alignment.bottomCenter,
+                                    transform: Matrix4.identity()
+                                      ..setEntry(3, 2, 0.006)
+                                      ..rotateX(math.pi/2 -math.pi/3 * animationController.value),
+                                    child: backUp,
+                                  ) :         
+                                  Transform(
+                                          transform: Matrix4.identity()..translate(-10.0, -15.0, -10.0),
+                                          child: backUp,),                   
+                            //makeUpperClip(myDigit()),
                             Padding(
                               padding: EdgeInsets.only(top: widget.spacing),
                             ),
-                            GestureDetector(
-                              child: backDown,
-                              onTap: () {
-                                belowTap();
-                              }
-                            ,)
+                            backDown,
                           ],
                   ),
                   
@@ -321,7 +312,7 @@ class CSDigitState extends State<CSDigit> with SingleTickerProviderStateMixin {
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                             Text ('.', style: TextStyle(
+                             Text ('Aradaki', style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 80.0,
                       color: Colors.blue),),
@@ -332,52 +323,32 @@ class CSDigitState extends State<CSDigit> with SingleTickerProviderStateMixin {
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            stage < 2 ? 
-                                _goingDown == true ?
-                                    Transform(
-                                      alignment: Alignment.bottomCenter,
-                                            transform: Matrix4.identity()..setEntry(3, 2, 0.006)
-                                            ..rotateX(math.pi /2 - math.pi/2 * animationController.value), // This is the ISSUE
-                                            child: backUp,
-                                    ) 
-                                    : 
-                                    Transform(
-                                      alignment: Alignment.bottomCenter,
-                                            transform: Matrix4.identity()..setEntry(3, 2, 0.006)
-                                            ..rotateX(math.pi /2),
-                                            child: backUp,
-                                    )
-                                    :
-                              Transform(
-                                alignment: Alignment.bottomCenter,
-                                      transform: Matrix4.identity()..setEntry(3, 2, 0.006)
-                                      ..rotateX(math.pi/2 - math.pi /2 * animationController.value),
-                                      child: backUp,                            
-                              ),
+                            GestureDetector(
+                              onTap: () {
+                                upperTap();
+                              },
+                              child:
+                               (stage >= 2) ? Transform(
+                                          transform: Matrix4.identity()..translate(-15.0, -15.0, 0.0),
+                                          child: frontUp,
+                               )
+                                          : frontUp,
+                                  ),
+                            //makeUpperClip(myDigit()),
                             Padding(
                               padding: EdgeInsets.only(top: widget.spacing),
                             ),
-                            GestureDetector(
-                              child:
-                                    stage == 1 ? 
-                                    Transform(
-                                      alignment: Alignment.topCenter,
-                                            transform: Matrix4.identity()..setEntry(3, 2, 0.006)
-                                            ..rotateX(-math.pi /2 * animationController.value),
-                                            child: frontDown,
-                                    ) :
-                                    stage >= 2 ? Transform(
-                                      alignment: Alignment.topCenter,
-                                            transform: Matrix4.identity()..setEntry(3, 2, 0.006)
-                                            ..rotateX(-math.pi /2),
-                                            child: frontDown,
-                                    ): 
-                                          frontDown,
-                                          onTap: () {
-                                            belowTap();
-                                          },
-                              ),
-
+                            (stage == 1) ?
+                                  Transform(
+                                    alignment: Alignment.topCenter,
+                                    transform: Matrix4.identity()
+                                      ..setEntry(3, 2, 0.006)
+                                      ..rotateX(-math.pi /2 * animationController.value),
+                                    child: frontDown,
+                                  ) : 
+                                  (stage == 1) ?
+                                  frontDown :
+                                  Container(),              //makeLowerClip(myDigit()),
                           ],
                   ),
         ],
